@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,7 +13,9 @@ import android.graphics.Paint;
 import android.os.CountDownTimer;
 import android.support.v7.app.AlertDialog;
 import android.text.method.DialerKeyListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -23,7 +26,7 @@ import java.util.Random;
 /**
  * Created by 984707 on 12/3/2015.
  */
-public class GameView extends SurfaceView  {
+public class GameView extends SurfaceView {
     SurfaceHolder holder;
     Bitmap mouse;
     private int score = 0;
@@ -34,15 +37,13 @@ public class GameView extends SurfaceView  {
     private float mouseY = 100.0f;
     private GameThread gthread = null;
     int min = 100;
-    int max = 600;
+    int max = 300;
     int min1 = 100;
-    int max2 = 600;
+    int max2 = 400;
     int startTime = 10000;
     int intervalTime = 1000;
-    CountDownTimer maintimer ;
-
-
-
+    CountDownTimer maintimer;
+    SharedPreferences settings;
 
 
     public GameView(final Context context) {
@@ -52,29 +53,40 @@ public class GameView extends SurfaceView  {
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                mouse =BitmapFactory.decodeResource(getResources(), R.drawable.mouse);
+
+                settings = context.getSharedPreferences("PREFERENCE", context.MODE_PRIVATE);
+
+
+                // Reading from SharedPreferences
+
+
+                mouse = BitmapFactory.decodeResource(getResources(), R.drawable.mouse);
                 scorePaint = new Paint();
                 scorePaint.setColor(Color.WHITE);
-                scorePaint.setTextSize(50.0f);
+                scorePaint.setTextSize(30.0f);
                 makeThread();
 
-       maintimer=         new CountDownTimer(startTime,intervalTime){
+                maintimer = new CountDownTimer(startTime, intervalTime) {
                     @Override
                     public void onTick(long millisUntilFinished) {
-                        timer = millisUntilFinished/1000;
+                        timer = millisUntilFinished / 1000;
 
                     }
 
                     @Override
                     public void onFinish() {
-
+                        // Writing data to SharedPreferences
+                        SharedPreferences.Editor editor = settings.edit();
+                        if (score>Integer.parseInt(settings.getString("key", "0"))  ) {
+                            editor.putString("key", score + "");
+                        }
+                        editor.commit();
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 
 
-
                         builder
-                                .setMessage("Game over!!!!");
+                                .setMessage("Your score :" + settings.getString("key", ""));
 
 
                         builder.setCancelable(false);
@@ -83,7 +95,7 @@ public class GameView extends SurfaceView  {
                                 // User clicked OK button
                                 score = 0;
                                 makeThread();
-maintimer.start();
+                                maintimer.start();
 
                                 gthread.start();
                             }
@@ -92,11 +104,10 @@ maintimer.start();
                             public void onClick(DialogInterface dialog, int id) {
                                 // User cancelled the dialog
                                 killThread();
-                                ((Activity)context).finish();
+                                ((Activity) context).finish();
                             }
                         });
                         builder.show();
-
 
 
                     }
@@ -118,51 +129,47 @@ maintimer.start();
             }
 
 
-
         });
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-      //  mouseX = mouseX + 4.0f;
+        //  mouseX = mouseX + 4.0f;
 
 
-        if(mouseX > getWidth()) { mouseX = -205.0f;}
+
 
 
         canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(mouse, mouseX, mouseY, null);
+
+
+        canvas.drawText("Max: " + settings.getString("key", ""), 150.0f, 50.0f, scorePaint);
         canvas.drawText("Score: " + String.valueOf(score), 10.0f, 50.0f, scorePaint);
-        canvas.drawText("TIME:"+ timer,getWidth()-200.0f,50.0f,scorePaint);
+
+        canvas.drawText("TIME:" + timer, getWidth() - 200.0f, 50.0f, scorePaint);
 
     }
 
-    public void makeThread()
-    {
+    public void makeThread() {
         gthread = new GameThread(this);
 
     }
 
-    public void killThread()
-    {
+    public void killThread() {
         boolean retry = true;
         gthread.setRunning(false);
-        while(retry)
-        {
-            try
-            {
+        while (retry) {
+            try {
                 gthread.join();
                 retry = false;
-            }
-            catch (InterruptedException e)
-            {
+            } catch (InterruptedException e) {
             }
         }
     }
 
-    public void onDestroy()
-    {
+    public void onDestroy() {
         mouse.recycle();
         mouse = null;
         System.gc();
@@ -180,7 +187,7 @@ maintimer.start();
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
 
             if (x > mouseX && x < mouseX + mouse.getWidth() && y > mouseY && y < mouseY + mouse.getHeight()) {
-                Log.e("Coordinate",i1+" "+i2);
+                Log.e("Coordinate", i1 + " " + i2);
                 mouseX = i1;
                 mouseY = i2;
 

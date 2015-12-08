@@ -19,21 +19,11 @@ GameView gameView;
         super.onCreate(savedInstanceState);
         gameView = new GameView(this);
 ////
-        flowerButton = new Button(this);
-        flowerButton.setWidth(350);
-        flowerButton.setHeight(100);
-        flowerButton.setBackgroundColor(Color.LTGRAY);
-        flowerButton.setTextColor(Color.RED);
-        flowerButton.setTextSize(20);
-        flowerButton.setText("Give Flower");
-        flowerButton.setOnClickListener(this);
-        flowerButton.setGravity(Gravity.CENTER);
+
         FrameLayout GameLayout = new FrameLayout(this);
         LinearLayout buttonlayout = new LinearLayout(this);
 
-       // buttonlayout.addView(flowerButton);
-    //    buttonlayout.addView(image);
-       // buttonlayout.setBackgroundResource(R.drawable.background);
+
 
         GameLayout.addView(gameView);
         GameLayout.addView(buttonlayout);
